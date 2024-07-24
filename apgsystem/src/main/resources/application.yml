@@ -1,0 +1,32 @@
+server:
+  port: ${PORT:8081}
+  forward-headers-strategy: native
+
+logging:
+  level:
+    org.atmosphere: warn
+
+spring:
+  mustache:
+    check-template-location: false
+  datasource:
+    url: jdbc:mysql://localhost:3306/apg?createDatabaseIfNotExist=true&useSSL=true
+    username: root
+    password: admin1234
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+
+vaadin:
+  launch-browser: false
+  allowed-packages:
+    - com.vaadin
+    - org.vaadin
+    - dev.hilla
+    - com.example.application
