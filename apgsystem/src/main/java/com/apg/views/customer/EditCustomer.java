@@ -110,9 +110,9 @@ public class EditCustomer extends VerticalLayout {
 
         HorizontalLayout row6 = new HorizontalLayout();
         row6.setSizeFull();
-//        remark.setWidth("50%");
+        remark.setWidth("50%");
         row6.add(remark);
-        row6.setFlexGrow(1, remark);
+//        row6.setFlexGrow(1, remark);
 
         HorizontalLayout row7 = new HorizontalLayout();
         row7.setSizeFull();
