@@ -7,7 +7,7 @@ public class DatabaseConfig {
     public static String driverClassName = "com.mysql.cj.jdbc.Driver";
 
     public static String getTomcatName (String name){
-        return "/apgsystem".concat(name);
+        return "".concat(name);
     }
 
 }

@@ -1,0 +1,169 @@
+.dashboard-board {
+    max-width: 1800px;  // Ensuring the board has a max width
+    margin: auto;
+}
+
+.dashboard-view {
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* Align content to the top */
+    align-items: flex-start; /* Align content to the right */
+}
+
+.dashboard-button {
+    /* box-sizing: border-box; */
+    width: 260px; /* Fixed width */
+    height: 200px; /* Fixed height */
+    margin: 10px;
+    font-size: 16px;
+    border: none;
+    border-radius: 20px;
+    box-shadow: var(--lumo-box-shadow-s);
+    background-color: var(--lumo-contrast); /* Example color */
+    color: white;
+    flex: 0 0 auto; /* No growth, no shrink, auto basis */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Center content horizontally and vertically */
+}
+
+/* Ensure rows are styled consistently */
+vaadin-board-row, .row {
+    display: flex;
+    justify-content: space-around; /* Adjust this based on your design needs */
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
+.row-spacing {
+    display: flex;
+    justify-content: flex-start; /* Aligns children to the right */
+    width: 100%; /* Full width to extend the row */
+    margin-bottom: 10px; /* Reduced vertical spacing between rows */
+}
+
+/* Responsive handling */
+@media (max-width: 1800px) {
+    .dashboard-board {
+        overflow-x: scroll;  /* Allows scrolling on smaller screens */
+        display: block;
+    }
+
+}
+
+.spacing {
+    margin-right: 10px; /* Adjust spacing between buttons */
+}
+
+.large {
+    padding: 10px 20px; /* Larger click area */
+    min-width: 200px; /* Minimum width */
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.drawer-section {
+    padding: 1em;
+    background-color: #ffffff; /* White background */
+    margin-bottom: 1em;
+    color: black; /* Black text color */
+}
+
+.drawer-link {
+    padding: 0.5em 1em; /* Adjust padding to fit content */
+    display: block; /* Display as block for consistency */
+    background-color: #ffffff; /* White background */
+    margin: 0.5em 0; /* Adjust margin */
+    color: black; /* Black text color */
+    text-decoration: none; /* Remove underline */
+}
+
+.drawer-link:hover {
+    background-color: #f0f0f0;
+}
+
+.accordion-header {
+    font-weight: bold;
+    background-color: #ffffff; /* White background */
+    color: black; /* Black text color */
+    padding: 0.5em;
+}
+
+.accordion-panel {
+    background-color: #ffffff; /* White background */
+    margin-top: 0.5em;
+    color: black; /* Black text color */
+}
+
+.accordion-option {
+    padding: 0.5em 2em; /* Increase padding to indent the links */
+    background-color: #ffffff; /* White background */
+    color: var(--lumo-primary-text-color); /* Use primary text color for links */
+    margin: 0.3em 0; /* Increase spacing between options */
+    text-decoration: none; /* Remove underline */
+    display: block; /* Display as block for consistency */
+}
+
+.accordion-option:hover {
+    background-color: #f0f0f0; /* Highlight the link on hover */
+    color: var(--lumo-primary-color); /* Change text color on hover */
+}
+
+.full-calendar {
+    display: block; /* Ensure it's not set to 'none' */
+    width: 100%;
+    height: auto;
+}
+
+@keyframes slideInFromLeft {
+    0% {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.view-slide {
+    transition: transform 0.5s ease-in-out;
+}
+
+.view-slide-enter {
+    transform: translateX(100%);
+}
+
+.view-slide-enter-active {
+    transform: translateX(0);
+}
+
+.view-slide-exit {
+    transform: translateX(0);
+}
+
+.view-slide-exit-active {
+    transform: translateX(-100%);
+}
+
+.sliding-effect {
+  transition: transform 0.5s ease-in-out;
+}
+
+.hidden {
+  transform: translateX(-100%);
+}
+
+.visible {
+  transform: translateX(0);
+}
+
+
+
+
+
