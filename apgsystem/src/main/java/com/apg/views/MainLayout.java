@@ -40,7 +40,7 @@ public class MainLayout extends AppLayout {
 
     private void createHeader() {
 
-        H3 logo = new H3("HKF Attendance System | Hello ADMIN" + " !");
+        H3 logo = new H3("APG Internal System | Hello ADMIN" + " !");
 
         logo.addClassNames(
                 LumoUtility.FontSize.LARGE, // raw CSS default theme
@@ -92,8 +92,9 @@ public class MainLayout extends AppLayout {
 
         AccordionPanel approvalPanel = accordion.add("Customer Information",
                 createContent(
+                        createStyledAnchor(getTomcatName("/add-customer"), "Add Customer"),
                         createStyledAnchor(getTomcatName("/"), "Invoice"), //obtain after delivery packed with DN
-                        createStyledAnchor(getTomcatName("/"), "Monthly Statement"),
+                        createStyledAnchor(getTomcatName("/"), "Monthly Statement/Invoice"),
                         createStyledAnchor(getTomcatName("/"), "Cylinder On Hand")
                         // export the monthly document (statement + invoice) of all customer, calculate the cylinder rental
                 )); // export the monthly document (statement + invoice) of all customer

@@ -1,7 +1,9 @@
 package com.apg.views;
 
 import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.login.LoginForm;
+import com.vaadin.flow.component.login.LoginOverlay;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
@@ -15,9 +17,9 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 @PageTitle("Login APG System")
 @AnonymousAllowed
 @CssImport("./styles/shared-styles.css")
-public class LoginView extends FlexLayout implements BeforeEnterObserver {
+public class LoginView extends Div implements BeforeEnterObserver {
 
-    LoginForm loginForm = new LoginForm();
+    LoginOverlay loginForm = new LoginOverlay();
 
     public LoginView() {
         buildUI();
@@ -26,38 +28,21 @@ public class LoginView extends FlexLayout implements BeforeEnterObserver {
     private void buildUI() {
         setSizeFull();
         setClassName("login-screen");
+        loginForm.setTitle("Login");
+        loginForm.setDescription("APG Internal System");
 
-        // layout to center login form when there is sufficient screen space
         FlexLayout centeringLayout = new FlexLayout();
         centeringLayout.setSizeFull();
         centeringLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
         centeringLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        loginForm.getElement().getThemeList().add("dark");
+        loginForm.setForgotPasswordButtonVisible(false);
         loginForm.setAction("login");
+        loginForm.setOpened(true);
+        loginForm.getElement().setAttribute("no-autofocus", "");
         centeringLayout.add(loginForm);
-
-        // information text about logging in
-//        Component loginInformation = buildLoginInformation();
-//        add(loginInformation);
-
         add(centeringLayout);
     }
-
-//    private Component buildLoginInformation() {
-//        VerticalLayout loginInformation = new VerticalLayout();
-//        loginInformation.setClassName("login-information");
-//
-//        H1 loginInfoHeader = new H1("Login Information");
-//        loginInfoHeader.setWidth("100%");
-//        Span loginInfoText = new Span(
-//                "Log in as \"admin\" to have full access. Log in with any " +
-//                        "other username to have read-only access. For all " +
-//                        "users, the password is same as the username.");
-//        loginInfoText.setWidth("100%");
-//        loginInformation.add(loginInfoHeader);
-//        loginInformation.add(loginInfoText);
-//
-//        return loginInformation;
-//    }
 
     @Override
     public void beforeEnter(BeforeEnterEvent beforeEnterEvent) {
@@ -68,5 +53,4 @@ public class LoginView extends FlexLayout implements BeforeEnterObserver {
             loginForm.setError(true);
         }
     }
-
 }
