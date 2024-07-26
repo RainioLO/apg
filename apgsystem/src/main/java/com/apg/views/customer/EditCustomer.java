@@ -1,7 +1,9 @@
 package com.apg.views.customer;
 
 import com.apg.data.CustomerStatus;
+import com.apg.utils.DatabaseConfig;
 import com.apg.views.MainLayout;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -9,6 +11,7 @@ import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Image;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -21,8 +24,18 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinService;
 import jakarta.annotation.security.PermitAll;
 
+import java.math.BigDecimal;
+import java.sql.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.Arrays;
+import java.util.Locale;
 import java.util.Random;
+import java.util.stream.Collectors;
+
+import static com.apg.utils.DatabaseConfig.getTomcatName;
 
 @PermitAll
 @PageTitle("APG | Edit Customer")
@@ -40,14 +53,14 @@ public class EditCustomer extends VerticalLayout {
     private TextField contactPerson = new TextField();
     private TextField contactNumber = new TextField();
     private TextArea address = new TextArea();
-    private NumberField deposit = new NumberField ();
+    private NumberField deposit = new NumberField();
     private TextArea remark = new TextArea();
-    private ComboBox<CustomerStatus> status = new ComboBox<CustomerStatus>("Customer Status");
+    private ComboBox<String> status = new ComboBox<>("Customer Status");
     private DatePicker addDate = new DatePicker();
 
     private Button saveButton = new Button("Save");
 
-    public EditCustomer(){
+    public EditCustomer() {
 //        setSizeFull();
         setWidth("1000px");
         setMargin(true);
@@ -56,7 +69,7 @@ public class EditCustomer extends VerticalLayout {
         buildUI();
     }
 
-    private void buildUI(){
+    private void buildUI() {
         configureTop();
         configureCustomerInfo();
         buildView();
@@ -70,7 +83,7 @@ public class EditCustomer extends VerticalLayout {
         top.add(header);
     }
 
-    private void buildView(){
+    private void buildView() {
         add(top);
 
         HorizontalLayout row1 = new HorizontalLayout();
@@ -79,7 +92,7 @@ public class EditCustomer extends VerticalLayout {
 //        status.setWidth("33%");
 //        addDate.setWidth("33%");
         row1.add(customerID, status, addDate);
-        row1.setFlexGrow(1, customerID, status,addDate);
+        row1.setFlexGrow(1, customerID, status, addDate);
 
         HorizontalLayout row2 = new HorizontalLayout();
         row2.setSizeFull();
@@ -121,9 +134,10 @@ public class EditCustomer extends VerticalLayout {
         add(row1, row2, row3, row4, row5, row6, row7);
     }
 
-    private HorizontalLayout createSaveButton(){
+    private HorizontalLayout createSaveButton() {
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SUCCESS);
         saveButton.addClassName("cursor-pointer");
+        saveButton.addClickListener(e -> submitButtonEvent());
         HorizontalLayout button = new HorizontalLayout();
         button.setSizeFull();
         button.add(saveButton);
@@ -131,7 +145,7 @@ public class EditCustomer extends VerticalLayout {
         return button;
     }
 
-    private void configureCustomerInfo(){
+    private void configureCustomerInfo() {
         configureCustomerID();
         configureAddDate();
         configureChinName();
@@ -145,13 +159,95 @@ public class EditCustomer extends VerticalLayout {
         configureStatus();
     }
 
-    private void configureStatus(){
+    private void submitButtonEvent(){
+        try {
+            insertDataToDataBase();
+
+        } catch (Exception e){
+            Notification notification = new Notification("Submission fail. Please fill all required fields", 3000, Notification.Position.BOTTOM_STRETCH);
+            notification.open();
+            e.printStackTrace();
+            return;
+        }
+
+        Notification notification = new Notification("Submitted Successfully", 3000, Notification.Position.BOTTOM_STRETCH);
+        notification.open();
+        // Schedule the reload to happen after the notification has had time to show
+        UI currentUI = UI.getCurrent();
+        currentUI.access(() -> {
+            currentUI.setPollInterval(1300); // Set polling to trigger UI changes
+            currentUI.addPollListener(event -> {
+                currentUI.getPage().setLocation(getTomcatName("/add-customer"));
+                currentUI.setPollInterval(-1); // Stop polling after reload
+            });
+        });
+
+    }
+
+    private void insertDataToDataBase() {
+        String tableName = "customer_table";
+        String createTableSQL = "CREATE TABLE IF NOT EXISTS `" + tableName + "` (" +
+                "`customerID` VARCHAR(255) NOT NULL," +
+                "`addDate` DATE," +
+                "`chinName` VARCHAR(255) NOT NULL," +
+                "`engName` VARCHAR(255) NOT NULL," +
+                "`nature` VARCHAR(255)," +
+                "`contactPerson` VARCHAR(255) NOT NULL," +
+                "`contactNumber` VARCHAR(255) NOT NULL," +
+                "`address` VARCHAR(500)," +
+                "`deposit` DECIMAL(10,2)," +
+                "`remark` VARCHAR(500)," +
+                "`status` VARCHAR(100) NOT NULL," +
+                "PRIMARY KEY (`customerID`)," +
+                "CHECK (`customerID` <> '')," +
+                "CHECK (`chinName` <> '')," +
+                "CHECK (`engName` <> '')," +
+                "CHECK (`contactPerson` <> '')," +
+                "CHECK (`contactNumber` <> '')," +
+                "CHECK (`status` <> '')" +
+                ") ENGINE=InnoDB DEFAULT CHARSET=utf8;";
+
+        String insertSQL = "INSERT INTO `" + tableName + "` (" +
+                "`customerID`, `addDate`, `chinName`, `engName`, `nature`, `contactPerson`, " +
+                "`contactNumber`, `address`, `deposit`, `remark`, `status`" +
+                ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+
+        try (Connection conn = DriverManager.getConnection(DatabaseConfig.url, DatabaseConfig.username, DatabaseConfig.password);
+             Statement createStmt = conn.createStatement();
+             PreparedStatement pstmt = conn.prepareStatement(insertSQL)) {
+            createStmt.execute(createTableSQL);
+
+            pstmt.setString(1, customerID.getValue());
+            if (addDate.getValue() != null) {
+                pstmt.setDate(2, java.sql.Date.valueOf(addDate.getValue()));
+            } else {
+                pstmt.setNull(2, java.sql.Types.DATE);
+            }
+            pstmt.setString(3, chinName.getValue());
+            pstmt.setString(4, engName.getValue());
+            pstmt.setObject(5, nature.getValue());
+            pstmt.setObject(6, contactPerson.getValue());
+            pstmt.setString(7, contactNumber.getValue());
+            pstmt.setString(8, address.getValue());
+            pstmt.setBigDecimal(9, BigDecimal.valueOf(deposit.getValue()));
+            pstmt.setString(10, remark.getValue());
+            pstmt.setString(11, status.getValue());
+
+            pstmt.executeUpdate();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Please fill all the required fields");
+        }
+    }
+
+    private void configureStatus() {
         status.setLabel("Status of Customer");
-        status.setItems(CustomerStatus.values());
+        status.setItems(Arrays.stream(CustomerStatus.values()).map(e -> e.getDescription()).collect(Collectors.toList()));
         status.setPlaceholder("Please select a status");
     }
 
-    private void configureRemarks(){
+    private void configureRemarks() {
         remark.setLabel("Remarks");
         remark.setMaxLength(150);
         remark.setValueChangeMode(ValueChangeMode.EAGER);
@@ -161,13 +257,13 @@ public class EditCustomer extends VerticalLayout {
         remark.setPlaceholder("If any ...");
     }
 
-    private void configureDeposit(){
+    private void configureDeposit() {
         deposit.setLabel("Assigned Deposit HKD$");
         deposit.setMin(0); // Set minimum value to 0
         deposit.setPlaceholder("Enter deposit amount");
     }
 
-    private void configureAddress(){
+    private void configureAddress() {
         address.setLabel("Address of Customer");
         address.setMaxLength(150);
         address.setValueChangeMode(ValueChangeMode.EAGER);
@@ -179,45 +275,45 @@ public class EditCustomer extends VerticalLayout {
         address.setPlaceholder("Type address here ...");
     }
 
-    private void configureContactNumber(){
+    private void configureContactNumber() {
         contactNumber.setLabel("Contact Number");
         contactNumber.setRequired(true);
         contactNumber.setRequiredIndicatorVisible(true);
     }
 
-    private void configureContactPerson(){
+    private void configureContactPerson() {
         contactPerson.setLabel("Contact Person");
         contactPerson.setRequired(true);
         contactPerson.setRequiredIndicatorVisible(true);
     }
 
-    private void configureNature(){
+    private void configureNature() {
         nature.setLabel("Nature of Customer");
         nature.setItems("Engineering", "Science", "Medical", "Beverage");
         nature.setPlaceholder("Please select a nature");
     }
 
 
-    private void configureEngName(){
+    private void configureEngName() {
         engName.setLabel("Customer Chinese Name");
         engName.setRequired(true);
         engName.setRequiredIndicatorVisible(true);
     }
 
-    private void configureChinName(){
+    private void configureChinName() {
         chinName.setLabel("Customer Chinese Name");
         chinName.setRequired(true);
         chinName.setRequiredIndicatorVisible(true);
     }
 
-    private void configureAddDate(){
+    private void configureAddDate() {
         addDate.setLabel("Join Date");
         addDate.setValue(LocalDate.now());
         addDate.setRequired(true);
         addDate.setRequiredIndicatorVisible(true);
     }
 
-    private void configureCustomerID(){
+    private void configureCustomerID() {
         customerID.setLabel("Customer ID");
         customerID.setWidth("min-content");
         customerID.setReadOnly(true);
@@ -238,11 +334,6 @@ public class EditCustomer extends VerticalLayout {
         }
         return sb.toString();
     }
-
-
-
-
-
 
 
 

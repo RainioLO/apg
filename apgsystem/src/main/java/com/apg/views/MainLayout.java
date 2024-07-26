@@ -94,7 +94,7 @@ public class MainLayout extends AppLayout {
                 createContent(
                         createStyledAnchor(getTomcatName("/add-customer"), "Add Customer"),
                         createStyledAnchor(getTomcatName("/"), "Invoice"), //obtain after delivery packed with DN
-                        createStyledAnchor(getTomcatName("/"), "Monthly Statement/Invoice"),
+                        createStyledAnchor(getTomcatName("/"), "Monthly Document"),
                         createStyledAnchor(getTomcatName("/"), "Cylinder On Hand")
                         // export the monthly document (statement + invoice) of all customer, calculate the cylinder rental
                 )); // export the monthly document (statement + invoice) of all customer

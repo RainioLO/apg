@@ -1,10 +1,10 @@
 package com.apg.data;
 
 public enum CustomerStatus {
-    CONTACTED("Customer has been contacted"),
-    ACTIVE("Customer account is active"),
-    INACTIVE("Customer account is inactive"),
-    SUSPENDED("Customer account is suspended");
+    CONTACTED("Contacted"),
+    ACTIVE("Active"),
+    INACTIVE("Inactive"),
+    SUSPENDED("Suspended");
 
     private final String description;
 
