@@ -38,27 +38,29 @@ import java.util.stream.Collectors;
 import static com.apg.utils.DatabaseConfig.getTomcatName;
 
 @PermitAll
-@PageTitle("APG | Edit Customer")
-@Route(value = "add-customer", layout = MainLayout.class)
+@PageTitle("APG | New Customer")
+@Route(value = "new-customer", layout = MainLayout.class)
 @CssImport("./styles/styles.css")
 public class EditCustomer extends VerticalLayout {
 
     HorizontalLayout top = new HorizontalLayout();
 
-    private TextField customerID = new TextField();
-    private TextField chinName = new TextField();
-    private TextField engName = new TextField();
+    protected TextField customerID = new TextField();
+    protected TextField chinName = new TextField();
+    protected TextField engName = new TextField();
     // Nature box
-    private ComboBox<String> nature = new ComboBox<>("Nature");
-    private TextField contactPerson = new TextField();
-    private TextField contactNumber = new TextField();
-    private TextArea address = new TextArea();
-    private NumberField deposit = new NumberField();
-    private TextArea remark = new TextArea();
-    private ComboBox<String> status = new ComboBox<>("Customer Status");
-    private DatePicker addDate = new DatePicker();
+    protected ComboBox<String> nature = new ComboBox<>("Nature");
+    protected TextField contactPerson = new TextField();
+    protected TextField contactNumber = new TextField();
+    protected TextArea address = new TextArea();
+    protected NumberField deposit = new NumberField();
+    protected TextArea remark = new TextArea();
+    protected ComboBox<String> status = new ComboBox<>("Customer Status");
+    protected DatePicker addDate = new DatePicker();
 
     private Button saveButton = new Button("Save");
+
+    protected H3 header = new H3(); //header 3
 
     public EditCustomer() {
 //        setSizeFull();
@@ -69,21 +71,20 @@ public class EditCustomer extends VerticalLayout {
         buildUI();
     }
 
-    private void buildUI() {
+    protected void buildUI() {
         configureTop();
         configureCustomerInfo();
         buildView();
     }
 
-    private void configureTop() {
-        H3 header = new H3(); //header 3
-        header.setText("APG Edit Customer");
+    protected void configureTop() {
+        header.setText("APG - New Customer");
         header.setWidth("100%");
         top.setDefaultVerticalComponentAlignment(Alignment.CENTER);
         top.add(header);
     }
 
-    private void buildView() {
+    protected void buildView() {
         add(top);
 
         HorizontalLayout row1 = new HorizontalLayout();
@@ -134,10 +135,12 @@ public class EditCustomer extends VerticalLayout {
         add(row1, row2, row3, row4, row5, row6, row7);
     }
 
-    private HorizontalLayout createSaveButton() {
+    protected HorizontalLayout createSaveButton() {
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SUCCESS);
         saveButton.addClassName("cursor-pointer");
         saveButton.addClickListener(e -> submitButtonEvent());
+        saveButton.setEnabled(false);
+        setupFieldListeners();
         HorizontalLayout button = new HorizontalLayout();
         button.setSizeFull();
         button.add(saveButton);
@@ -145,7 +148,49 @@ public class EditCustomer extends VerticalLayout {
         return button;
     }
 
-    private void configureCustomerInfo() {
+    protected boolean validateFields() {
+        boolean result = false;
+        result = isNotNullOrEmpty(status.getValue()) &&
+                isNotNullOrEmpty(addDate.getValue()) &&
+                isNotNullOrEmpty(chinName.getValue()) &&
+                isNotNullOrEmpty(engName.getValue()) &&
+                isNotNullOrEmpty(nature.getValue()) &&
+                isNotNullOrEmpty(deposit.getValue()) &&
+                isNotNullOrEmpty(contactNumber.getValue()) &&
+                isNotNullOrEmpty(contactPerson.getValue()) &&
+                isNotNullOrEmpty(address.getValue());
+        if (deposit.getValue() < 0) {
+            result = false;
+        }
+        return result;
+    }
+
+    protected void updateSaveButtonState() {
+        saveButton.setEnabled(validateFields());
+    }
+
+    protected void setupFieldListeners() {
+        // Assuming status, chinName, engName, etc. are members of the form as TextField or similar inputs
+        status.addValueChangeListener(event -> updateSaveButtonState());
+        addDate.addValueChangeListener(event -> updateSaveButtonState());
+        chinName.addValueChangeListener(event -> updateSaveButtonState());
+        engName.addValueChangeListener(event -> updateSaveButtonState());
+        nature.addValueChangeListener(event -> updateSaveButtonState());
+        deposit.addValueChangeListener(event -> updateSaveButtonState());
+        contactNumber.addValueChangeListener(event -> updateSaveButtonState());
+        contactPerson.addValueChangeListener(event -> updateSaveButtonState());
+        address.addValueChangeListener(event -> updateSaveButtonState());
+    }
+
+
+    protected boolean isNotNullOrEmpty(Object value) {
+        if (value instanceof String) {
+            return value != null && !((String) value).isEmpty();
+        }
+        return value != null; // Non-string values just check for null
+    }
+
+    protected void configureCustomerInfo() {
         configureCustomerID();
         configureAddDate();
         configureChinName();
@@ -159,11 +204,11 @@ public class EditCustomer extends VerticalLayout {
         configureStatus();
     }
 
-    private void submitButtonEvent(){
+    protected void submitButtonEvent() {
         try {
             insertDataToDataBase();
 
-        } catch (Exception e){
+        } catch (Exception e) {
             Notification notification = new Notification("Submission fail. Please fill all required fields", 3000, Notification.Position.BOTTOM_STRETCH);
             notification.open();
             e.printStackTrace();
@@ -177,14 +222,14 @@ public class EditCustomer extends VerticalLayout {
         currentUI.access(() -> {
             currentUI.setPollInterval(1300); // Set polling to trigger UI changes
             currentUI.addPollListener(event -> {
-                currentUI.getPage().setLocation(getTomcatName("/add-customer"));
+                currentUI.getPage().setLocation(getTomcatName("/new-customer"));
                 currentUI.setPollInterval(-1); // Stop polling after reload
             });
         });
 
     }
 
-    private void insertDataToDataBase() {
+    protected void insertDataToDataBase() {
         String tableName = "customer_table";
         String createTableSQL = "CREATE TABLE IF NOT EXISTS `" + tableName + "` (" +
                 "`customerID` VARCHAR(255) NOT NULL," +
@@ -241,13 +286,13 @@ public class EditCustomer extends VerticalLayout {
         }
     }
 
-    private void configureStatus() {
+    protected void configureStatus() {
         status.setLabel("Status of Customer");
         status.setItems(Arrays.stream(CustomerStatus.values()).map(e -> e.getDescription()).collect(Collectors.toList()));
         status.setPlaceholder("Please select a status");
     }
 
-    private void configureRemarks() {
+    protected void configureRemarks() {
         remark.setLabel("Remarks");
         remark.setMaxLength(150);
         remark.setValueChangeMode(ValueChangeMode.EAGER);
@@ -257,13 +302,13 @@ public class EditCustomer extends VerticalLayout {
         remark.setPlaceholder("If any ...");
     }
 
-    private void configureDeposit() {
+    protected void configureDeposit() {
         deposit.setLabel("Assigned Deposit HKD$");
         deposit.setMin(0); // Set minimum value to 0
         deposit.setPlaceholder("Enter deposit amount");
     }
 
-    private void configureAddress() {
+    protected void configureAddress() {
         address.setLabel("Address of Customer");
         address.setMaxLength(150);
         address.setValueChangeMode(ValueChangeMode.EAGER);
@@ -275,52 +320,52 @@ public class EditCustomer extends VerticalLayout {
         address.setPlaceholder("Type address here ...");
     }
 
-    private void configureContactNumber() {
+    protected void configureContactNumber() {
         contactNumber.setLabel("Contact Number");
         contactNumber.setRequired(true);
         contactNumber.setRequiredIndicatorVisible(true);
     }
 
-    private void configureContactPerson() {
+    protected void configureContactPerson() {
         contactPerson.setLabel("Contact Person");
         contactPerson.setRequired(true);
         contactPerson.setRequiredIndicatorVisible(true);
     }
 
-    private void configureNature() {
+    protected void configureNature() {
         nature.setLabel("Nature of Customer");
         nature.setItems("Engineering", "Science", "Medical", "Beverage");
         nature.setPlaceholder("Please select a nature");
     }
 
 
-    private void configureEngName() {
+    protected void configureEngName() {
         engName.setLabel("Customer Chinese Name");
         engName.setRequired(true);
         engName.setRequiredIndicatorVisible(true);
     }
 
-    private void configureChinName() {
+    protected void configureChinName() {
         chinName.setLabel("Customer Chinese Name");
         chinName.setRequired(true);
         chinName.setRequiredIndicatorVisible(true);
     }
 
-    private void configureAddDate() {
+    protected void configureAddDate() {
         addDate.setLabel("Join Date");
         addDate.setValue(LocalDate.now());
         addDate.setRequired(true);
         addDate.setRequiredIndicatorVisible(true);
     }
 
-    private void configureCustomerID() {
+    protected void configureCustomerID() {
         customerID.setLabel("Customer ID");
         customerID.setWidth("min-content");
         customerID.setReadOnly(true);
         customerID.setValue(generateCustomerID());
     }
 
-    private String generateCustomerID() {
+    protected String generateCustomerID() {
         Random random = new Random();
         String alphaNumericString = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         StringBuilder sb = new StringBuilder("APG");
@@ -334,8 +379,6 @@ public class EditCustomer extends VerticalLayout {
         }
         return sb.toString();
     }
-
-
 
 
 }

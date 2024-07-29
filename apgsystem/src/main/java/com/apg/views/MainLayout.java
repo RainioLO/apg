@@ -92,7 +92,8 @@ public class MainLayout extends AppLayout {
 
         AccordionPanel approvalPanel = accordion.add("Customer Information",
                 createContent(
-                        createStyledAnchor(getTomcatName("/add-customer"), "Add Customer"),
+                        createStyledAnchor(getTomcatName("/"), "Customer List"),
+                        createStyledAnchor(getTomcatName("/new-customer"), "New Customer"),
                         createStyledAnchor(getTomcatName("/"), "Invoice"), //obtain after delivery packed with DN
                         createStyledAnchor(getTomcatName("/"), "Monthly Document"),
                         createStyledAnchor(getTomcatName("/"), "Cylinder On Hand")
