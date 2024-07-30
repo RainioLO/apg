@@ -17,4 +17,12 @@ public enum CustomerStatus {
         return description;
     }
 
+    public static CustomerStatus fromDescription(String description) {
+        for (CustomerStatus status : CustomerStatus.values()) {
+            if (status.getDescription().equalsIgnoreCase(description)) {
+                return status;
+            }
+        }
+        throw new IllegalArgumentException("No constant with description " + description + " found");
+    }
 }

@@ -8,7 +8,7 @@ import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
 
-@Route(value = "", layout = MainLayout.class)
+@Route(value = "inventory", layout = MainLayout.class)
 @PermitAll
 public class InventoryView extends HorizontalLayout {
 

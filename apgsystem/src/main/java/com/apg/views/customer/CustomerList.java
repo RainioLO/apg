@@ -28,7 +28,7 @@ import static com.apg.utils.DatabaseConfig.getTomcatName;
 
 @PermitAll
 @PageTitle("APG | Customer List")
-@Route(value = "customerlist", layout = MainLayout.class)
+@Route(value = "", layout = MainLayout.class)
 @CssImport("./styles/styles.css")
 public class CustomerList extends VerticalLayout {
 
@@ -79,17 +79,16 @@ public class CustomerList extends VerticalLayout {
                 grid.addColumn(items -> items[3]).setHeader("Nature").setWidth("250px").setFlexGrow(0);
                 grid.addColumn(items -> items[4]).setHeader("Status").setWidth("250px").setFlexGrow(0);
 
-                grid.setSelectionMode(Grid.SelectionMode.SINGLE);
-                grid.addSelectionListener(event -> {
-                    event.getFirstSelectedItem().ifPresent(selectedItem -> {
-                        // Prepare navigation with parameters
-                        QueryParameters queryParams = QueryParameters.simple(Map.of(
-                                "customerID", selectedItem[0],
-                                "chinName", selectedItem[1]
-                        ));
-                        // Navigate to 'excel-display' view with parameters
-                        UI.getCurrent().navigate("customer-details", queryParams);
-                    });
+                grid.setSelectionMode(Grid.SelectionMode.NONE);
+                grid.addItemDoubleClickListener(event -> {
+                    String[] selectedItem = event.getItem();
+                    // Prepare navigation with parameters
+                    QueryParameters queryParams = QueryParameters.simple(Map.of(
+                            "customerID", selectedItem[0],
+                            "chinName", selectedItem[1]
+                    ));
+                    // Navigate to 'customer-details' view with parameters
+                    UI.getCurrent().navigate("customer-details", queryParams);
                 });
 
             } catch (SQLException e) {
