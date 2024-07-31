@@ -3,6 +3,7 @@ package com.apg.views.customer;
 import com.apg.data.CustomerStatus;
 import com.apg.utils.DatabaseConfig;
 import com.apg.views.MainLayout;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.CssImport;
@@ -14,10 +15,7 @@ import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.value.ValueChangeMode;
-import com.vaadin.flow.router.BeforeEnterEvent;
-import com.vaadin.flow.router.BeforeEnterListener;
-import com.vaadin.flow.router.PageTitle;
-import com.vaadin.flow.router.Route;
+import com.vaadin.flow.router.*;
 import jakarta.annotation.security.PermitAll;
 import org.aspectj.lang.annotation.Before;
 
@@ -34,7 +32,7 @@ import java.util.stream.Collectors;
 @PageTitle("APG | Customer Details")
 @Route(value = "customer-details", layout = MainLayout.class)
 @CssImport("./styles/styles.css")
-public class CustomerDetails extends VerticalLayout implements BeforeEnterListener {
+public class CustomerDetails extends VerticalLayout implements BeforeEnterObserver {
 
     private static String detailsCustomerID;
     private static String detailsCustomerName;
@@ -66,25 +64,37 @@ public class CustomerDetails extends VerticalLayout implements BeforeEnterListen
     private static Double deposit = 0d;
     private static String remark = "NA";
     private CustomerStatus status = CustomerStatus.ACTIVE;
-    
+
+    private Button backButton = new Button();
+    private Button editButton = new Button();
+    private Button confirmButton = new Button();
+    private Button deleteButton = new Button();
+    private Button dialogBackButton = new Button();
+
     public CustomerDetails() {
         setWidth("1000px");
         setMargin(true);
         addClassName("edit-customer-view");
         setAlignItems(Alignment.STRETCH);
-        buildUI();
     }
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
+        System.out.println("Entering beforeEnter method");
         Map<String, List<String>> params = event.getLocation().getQueryParameters().getParameters();
-        detailsCustomerID = extractParam(params, "customerID").orElse("");
-        detailsCustomerName = extractParam(params, "chinName").orElse("");
+        System.out.println("All received parameters: " + params);
+        detailsCustomerID = extractParam(params, "id").orElse("");
+        detailsCustomerName = extractParam(params, "name").orElse("");
+        System.out.println("Loaded details for: " + detailsCustomerID + ", " + detailsCustomerName);
+        buildUI(); // set in the beforeEnter
     }
 
 
-    private Optional<String> extractParam(Map<String, List<String>> params, String paramName) {
-        return params.containsKey(paramName) ? Optional.of(params.get(paramName).get(0)) : Optional.empty();
+    private Optional<String> extractParam(Map<String, List<String>> params, String key) {
+        if (params != null && params.containsKey(key) && !params.get(key).isEmpty()) {
+            return Optional.of(params.get(key).get(0));
+        }
+        return Optional.empty();
     }
 
     private ResultSet getCustomerList(Connection conn, String detailsCustomerID, String detailsCustomerName) throws SQLException {
@@ -104,6 +114,7 @@ public class CustomerDetails extends VerticalLayout implements BeforeEnterListen
 
     protected void buildUI() {
         configureTop();
+        System.out.println("ID: name " + detailsCustomerID + " :" + detailsCustomerName);
         System.out.println("Setting the information ......");
         setInformation();
         System.out.println(detailsCustomerID + ": " + detailsCustomerName);
@@ -151,8 +162,10 @@ public class CustomerDetails extends VerticalLayout implements BeforeEnterListen
         HorizontalLayout row6 = new HorizontalLayout();
         row6.setSizeFull();
         remarkArea.setWidth("50%");
-        row6.add(remark);
+        row6.add(remarkArea);
 //        row6.setFlexGrow(1, remark);
+
+        HorizontalLayout row7 = new HorizontalLayout();
 
         add(row1, row2, row3, row4, row5, row6);
     }
@@ -171,24 +184,28 @@ public class CustomerDetails extends VerticalLayout implements BeforeEnterListen
         configureStatus();
     }
 
-    private void setInformation(){
+    private void setInformation(){ // mind the closing
         try (Connection conn = DriverManager.getConnection(DatabaseConfig.url, DatabaseConfig.username, DatabaseConfig.password)) {
-            ResultSet customerInfo = getCustomerList(conn, detailsCustomerID, detailsCustomerName);
-            System.out.println(customerInfo.first());
-            if (customerInfo.next()) {  // Ensure there is a record to read !!!
-                customerID = customerInfo.getString("customerID");
-                addDate = customerInfo.getDate("addDate").toLocalDate();
-                chinName = customerInfo.getString("chinName");
-                engName = customerInfo.getString("engName");
-                nature = customerInfo.getString("nature");
-                contactPerson = customerInfo.getString("contactPerson");
-                contactNumber = customerInfo.getString("contactNumber");
-                address = customerInfo.getString("address");
-                deposit = customerInfo.getDouble("deposit");
-                remark = customerInfo.getString("remark");
-                status = CustomerStatus.fromDescription(customerInfo.getString("status"));
-            } else {
-                throw new SQLException("No data found for provided details.");
+            try (PreparedStatement stmt = conn.prepareStatement("SELECT * FROM customer_table WHERE customerID = ? AND chinName = ?")) {
+                stmt.setString(1, detailsCustomerID); // need creation of statement object
+                stmt.setString(2, detailsCustomerName);
+                try (ResultSet customerInfo = stmt.executeQuery()) {
+                    if (customerInfo.next()) {  // Correctly positioned to process the first row if exists
+                        customerID = customerInfo.getString("customerID");
+                        addDate = customerInfo.getDate("addDate").toLocalDate();
+                        chinName = customerInfo.getString("chinName");
+                        engName = customerInfo.getString("engName");
+                        nature = customerInfo.getString("nature");
+                        contactPerson = customerInfo.getString("contactPerson");
+                        contactNumber = customerInfo.getString("contactNumber");
+                        address = customerInfo.getString("address");
+                        deposit = customerInfo.getDouble("deposit");
+                        remark = customerInfo.getString("remark");
+                        status = CustomerStatus.fromDescription(customerInfo.getString("status"));
+                    } else {
+                        throw new SQLException("No data found for provided details.");
+                    }
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();

@@ -11,6 +11,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.QueryParameters;
@@ -33,12 +34,15 @@ import static com.apg.utils.DatabaseConfig.getTomcatName;
 public class CustomerList extends VerticalLayout {
 
     private Grid<String[]> grid = new Grid<>(String[].class);;
+    private TextField searchField = new TextField();
+    private Button searchButton = new Button("Search");
 
     public CustomerList() throws SQLException {
         setupComponents();
     }
 
     private void setupComponents() throws SQLException {
+        setupSearchBar();
         setupGrid();
         setSizeFull();
         setPadding(false);
@@ -55,7 +59,7 @@ public class CustomerList extends VerticalLayout {
     private void updateGrid() {
             try (Connection conn = DriverManager.getConnection(DatabaseConfig.url, DatabaseConfig.username, DatabaseConfig.password)) {
 
-                ResultSet customerRecord = getCustomerList(conn);
+                ResultSet customerRecord = getCustomerList(conn, searchField.getValue());
 
                 List<String[]> itemsList = new ArrayList<>();
 
@@ -79,14 +83,15 @@ public class CustomerList extends VerticalLayout {
                 grid.addColumn(items -> items[3]).setHeader("Nature").setWidth("250px").setFlexGrow(0);
                 grid.addColumn(items -> items[4]).setHeader("Status").setWidth("250px").setFlexGrow(0);
 
-                grid.setSelectionMode(Grid.SelectionMode.NONE);
+                grid.setSelectionMode(Grid.SelectionMode.SINGLE);
                 grid.addItemDoubleClickListener(event -> {
                     String[] selectedItem = event.getItem();
                     // Prepare navigation with parameters
                     QueryParameters queryParams = QueryParameters.simple(Map.of(
-                            "customerID", selectedItem[0],
-                            "chinName", selectedItem[1]
+                            "id", selectedItem[0],
+                            "name", selectedItem[1]
                     ));
+                    System.out.println("Navigating to customer-details with: " + queryParams);
                     // Navigate to 'customer-details' view with parameters
                     UI.getCurrent().navigate("customer-details", queryParams);
                 });
@@ -99,27 +104,35 @@ public class CustomerList extends VerticalLayout {
             }
         }
 
-
-    private ResultSet getCustomerList(Connection conn) throws SQLException {
+    private ResultSet getCustomerList(Connection conn, String filter) throws SQLException {
         String tableName = "customer_table";
-        String query = "SELECT " +
-                "    customerID, " +
-                "    addDate, " +
-                "    chinName, " +
-                "    engName, " +
-                "    nature, " +
-                "    contactPerson, " +
-                "    contactNumber, " +
-                "    address, " +
-                "    deposit, " +
-                "    remark, " +
-                "    status " +
-                "FROM " +
-                "    " + tableName + " " +
-                "ORDER BY " +
-                "    addDate DESC";
-        PreparedStatement pstmpt = conn.prepareStatement(query);
-        return pstmpt.executeQuery();
+        String query = "SELECT customerID, addDate, chinName, engName, " +
+                "nature, contactPerson, contactNumber, address, deposit, remark, status FROM " + tableName;
+
+        if (filter != null && !filter.trim().isEmpty()) {
+            query += " WHERE customerID LIKE ? OR chinName LIKE ? OR status LIKE ?";
+        }
+        query += " ORDER BY addDate DESC";
+
+        PreparedStatement pstmt = conn.prepareStatement(query);
+        if (filter != null && !filter.trim().isEmpty()) {
+            pstmt.setString(1, "%" + filter + "%");
+            pstmt.setString(2, "%" + filter + "%");
+            pstmt.setString(3, "%" + filter + "%");
+        }
+        return pstmt.executeQuery();
+    }
+
+    private void setupSearchBar() {
+        searchField.setPlaceholder("Search customer ...");
+        searchField.setClearButtonVisible(true);
+        searchButton.addClickListener(e -> updateGrid());
+        searchField.addValueChangeListener(e -> updateGrid());
+
+        HorizontalLayout searchLayout = new HorizontalLayout(searchField, searchButton);
+        searchLayout.setWidthFull();
+        searchLayout.setAlignItems(Alignment.BASELINE);
+        add(searchLayout);
     }
 
     private HorizontalLayout backButton() {
@@ -130,7 +143,7 @@ public class CustomerList extends VerticalLayout {
 
         HorizontalLayout buttons = new HorizontalLayout();
         buttons.add(back);
-//        buttons.setWidthFull();
+        buttons.setWidthFull();
         buttons.setAlignItems(FlexComponent.Alignment.END);
         buttons.setJustifyContentMode(JustifyContentMode.END);
         return buttons;

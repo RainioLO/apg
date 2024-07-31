@@ -59,10 +59,11 @@ public class EditCustomer extends VerticalLayout {
     protected DatePicker addDate = new DatePicker();
 
     private Button saveButton = new Button("Save");
+    private Button backButton = new Button("Back");
 
     protected H3 header = new H3(); //header 3
 
-    public EditCustomer() {
+    public EditCustomer() throws SQLException {
 //        setSizeFull();
         setWidth("1000px");
         setMargin(true);
@@ -71,7 +72,7 @@ public class EditCustomer extends VerticalLayout {
         buildUI();
     }
 
-    protected void buildUI() {
+    protected void buildUI() throws SQLException {
         configureTop();
         configureCustomerInfo();
         buildView();
@@ -130,20 +131,26 @@ public class EditCustomer extends VerticalLayout {
 
         HorizontalLayout row7 = new HorizontalLayout();
         row7.setSizeFull();
-        row7.add(createSaveButton());
+        row7.add(createButtons());
 
         add(row1, row2, row3, row4, row5, row6, row7);
     }
 
-    protected HorizontalLayout createSaveButton() {
+    protected HorizontalLayout createButtons() {
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SUCCESS);
         saveButton.addClassName("cursor-pointer");
         saveButton.addClickListener(e -> submitButtonEvent());
         saveButton.setEnabled(false);
+
+        backButton.addClassName("cursor-pointer");
+        backButton.addClickListener(event ->
+                UI.getCurrent().navigate(getTomcatName("/"))
+        );
+
         setupFieldListeners();
         HorizontalLayout button = new HorizontalLayout();
         button.setSizeFull();
-        button.add(saveButton);
+        button.add(saveButton, backButton);
         button.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
         return button;
     }
@@ -190,7 +197,7 @@ public class EditCustomer extends VerticalLayout {
         return value != null; // Non-string values just check for null
     }
 
-    protected void configureCustomerInfo() {
+    protected void configureCustomerInfo() throws SQLException {
         configureCustomerID();
         configureAddDate();
         configureChinName();
@@ -358,26 +365,47 @@ public class EditCustomer extends VerticalLayout {
         addDate.setRequiredIndicatorVisible(true);
     }
 
-    protected void configureCustomerID() {
+    protected void configureCustomerID() throws SQLException {
         customerID.setLabel("Customer ID");
         customerID.setWidth("min-content");
         customerID.setReadOnly(true);
         customerID.setValue(generateCustomerID());
     }
 
-    protected String generateCustomerID() {
-        Random random = new Random();
-        String alphaNumericString = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        StringBuilder sb = new StringBuilder("APG");
-        // Add the first character as a digit (0-9)
-        sb.append(random.nextInt(10));
-        // Add remaining 6 alphanumeric characters
-        for (int i = 1; i < 7; i++) {
-            int index = random.nextInt(alphaNumericString.length()); // Correct index range
-            char randomChar = alphaNumericString.charAt(index);
-            sb.append(randomChar);
+    protected String generateCustomerID() throws SQLException {
+
+        try (Connection conn = DriverManager.getConnection(DatabaseConfig.url, DatabaseConfig.username, DatabaseConfig.password)) {
+            Random random = new Random();
+            String alphaNumericString = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            while (true) { // an infinite loop, exit when the
+                StringBuilder sb = new StringBuilder("APG");
+                // Add the first character as a digit (0-9)
+                sb.append(random.nextInt(10));
+                // Add remaining 6 alphanumeric characters
+                for (int i = 1; i < 7; i++) {
+                    int index = random.nextInt(alphaNumericString.length()); // Correct index range
+                    char randomChar = alphaNumericString.charAt(index);
+                    sb.append(randomChar);
+                }
+                String candidateID = sb.toString();
+                if (usableId(conn, candidateID)) {
+                    return candidateID; // Return the new ID if it's usable
+                }
+                // If not usable, the loop continues and generates a new candidate
+            }
         }
-        return sb.toString();
+    }
+
+    private boolean usableId(Connection conn, String createdId) throws SQLException {
+        String tableName = "customer_table";
+        String query = "SELECT customerID FROM " + tableName + " WHERE customerID = ?";
+        PreparedStatement pstmt = conn.prepareStatement(query);
+        pstmt.setString(1, createdId);
+        ResultSet rs = pstmt.executeQuery();
+        boolean isUsable = !rs.next();
+        pstmt.close();
+        rs.close();
+        return isUsable;
     }
 
 
