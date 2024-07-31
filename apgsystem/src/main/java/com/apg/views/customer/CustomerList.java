@@ -8,11 +8,14 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
@@ -35,7 +38,7 @@ public class CustomerList extends VerticalLayout {
 
     private Grid<String[]> grid = new Grid<>(String[].class);;
     private TextField searchField = new TextField();
-    private Button searchButton = new Button("Search");
+//    private Button searchButton = new Button("Search");
 
     public CustomerList() throws SQLException {
         setupComponents();
@@ -92,13 +95,11 @@ public class CustomerList extends VerticalLayout {
                             "id", selectedItem[0],
                             "name", selectedItem[1]
                     ));
-                    System.out.println("Navigating to customer-details with: " + queryParams);
                     // Navigate to 'customer-details' view with parameters
                     UI.getCurrent().navigate("customer-details", queryParams);
                 });
 
             } catch (SQLException e) {
-                System.out.println("Database error or the database does not exist: " + e.getMessage());
                 // Clear the grid if there's an error
                 grid.removeAllColumns();
                 grid.setItems(new ArrayList<>()); // Ensure the grid is empty
@@ -127,10 +128,13 @@ public class CustomerList extends VerticalLayout {
     private void setupSearchBar() {
         searchField.setPlaceholder("Search customer ...");
         searchField.setClearButtonVisible(true);
-        searchButton.addClickListener(e -> updateGrid());
+        searchField.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
+        searchField.setValueChangeMode(ValueChangeMode.EAGER);
         searchField.addValueChangeListener(e -> updateGrid());
 
-        HorizontalLayout searchLayout = new HorizontalLayout(searchField, searchButton);
+//        searchButton.addClickListener(e -> updateGrid());
+
+        HorizontalLayout searchLayout = new HorizontalLayout(searchField);
         searchLayout.setWidthFull();
         searchLayout.setAlignItems(Alignment.BASELINE);
         add(searchLayout);

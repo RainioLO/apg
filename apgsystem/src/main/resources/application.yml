@@ -24,6 +24,7 @@ spring:
 
 
 vaadin:
+  push-mode: automatic
   launch-browser: false
   allowed-packages:
     - com.vaadin
