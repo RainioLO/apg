@@ -3,11 +3,14 @@ package com.apg.views.customer;
 import com.apg.data.CustomerStatus;
 import com.apg.utils.DatabaseConfig;
 import com.apg.views.MainLayout;
+import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -190,6 +193,7 @@ public class CustomerDetails extends VerticalLayout implements BeforeEnterObserv
     }
 
     private void configureButtons(){
+        setupFieldListeners();
         configureBackButton();
         configureEditButton();
         configureConfirmButton();
@@ -209,9 +213,11 @@ public class CustomerDetails extends VerticalLayout implements BeforeEnterObserv
     }
 
     private void configureConfirmButton(){
+        confirmButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SUCCESS);
         confirmButton.setVisible(false);
         confirmButton.setEnabled(false);
         confirmButton.addClassName("cursor-pointer");
+        confirmButton.addClickListener(click -> confirmEvent());
     }
 
     private void configureCancelButton(){
@@ -220,6 +226,99 @@ public class CustomerDetails extends VerticalLayout implements BeforeEnterObserv
         cancelButton.addClickListener(event -> {
             UI.getCurrent().getPage().setLocation(getTomcatName("/"));
         });
+    }
+
+    private void confirmEvent(){
+        // Create a new confirmation dialog
+        Dialog confirmDialog = new Dialog();
+        confirmDialog.setCloseOnEsc(false);
+        confirmDialog.setCloseOnOutsideClick(false);
+
+        // Create layout and components for the dialog
+        VerticalLayout layout = new VerticalLayout();
+        Text message = new Text("Are you sure you want to proceed?");
+        Button yesButton = new Button("Yes", event -> {
+            confirmDialog.close();
+            editSaveAction(); // This method should handle what happens after confirmation
+        });
+        Button noButton = new Button("No", event -> confirmDialog.close());
+        yesButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SUCCESS);
+        noButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
+        layout.add(message, yesButton, noButton);
+        layout.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.CENTER);
+        // Add layout to dialog
+        confirmDialog.add(layout);
+        // Open the dialog
+        confirmDialog.open();
+    }
+
+    private void editSaveAction() {
+        try {
+            updateData();
+        } catch (Exception e) {
+            Notification notification = new Notification("Submission fail. Please check", 3000, Notification.Position.BOTTOM_STRETCH);
+            notification.open();
+            e.printStackTrace();
+            return;
+        }
+        Notification notification = new Notification("Submitted Successfully", 3000, Notification.Position.BOTTOM_STRETCH);
+        notification.open();
+        // Schedule the reload to happen after the notification has had time to show
+        UI currentUI = UI.getCurrent();
+        currentUI.access(() -> {
+            currentUI.setPollInterval(1300); // Set polling to trigger UI changes
+            currentUI.addPollListener(event -> {
+                currentUI.getPage().setLocation(getTomcatName("/"));
+                currentUI.setPollInterval(-1); // Stop polling after reload
+            });
+        });
+    }
+
+    private void updateData() {
+        String tableName = "customer_table";
+        String updateSQL = "UPDATE `" + tableName + "` SET " +
+                "`addDate` = ?, `chinName` = ?, `engName` = ?, `nature` = ?, `contactPerson` = ?, " +
+                "`contactNumber` = ?, `address` = ?, `deposit` = ?, `remark` = ?, `status` = ? " +
+                "WHERE `customerID` = ?;";
+
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(updateSQL)) {
+            setPreparedStatementParameters(pstmt);
+            pstmt.setString(11, customerIDField.getValue()); // Assuming customerID is set last in the parameters
+            int affectedRows = pstmt.executeUpdate();
+            if (affectedRows == 0) {
+                System.out.println("No rows updated, it might indicate no record with the specified customerID exists.");
+            }
+        } catch (SQLException e) {
+            logError("Error updating data", e);
+        }
+    }
+
+    private Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(DatabaseConfig.url, DatabaseConfig.username, DatabaseConfig.password);
+    }
+
+    private void setPreparedStatementParameters(PreparedStatement pstmt) throws SQLException {
+        if (addDatePicker.getValue() != null) {
+            pstmt.setDate(1, java.sql.Date.valueOf(addDatePicker.getValue()));
+        } else {
+            pstmt.setNull(1, java.sql.Types.DATE);
+        }
+        pstmt.setString(2, chinNameField.getValue());
+        pstmt.setString(3, engNameField.getValue());
+        pstmt.setObject(4, natureBox.getValue());
+        pstmt.setObject(5, contactPersonField.getValue());
+        pstmt.setString(6, contactNumberField.getValue());
+        pstmt.setString(7, addressArea.getValue());
+        pstmt.setBigDecimal(8, BigDecimal.valueOf(depositField.getValue()));
+        pstmt.setString(9, remarkArea.getValue());
+        pstmt.setString(10, statusBox.getValue());
+    }
+
+    private void logError(String message, Exception e) {
+        System.err.println(message);
+        e.printStackTrace();
+        // Ideally, replace System prints with a logging framework like Log4j or SLF4J
     }
 
     private void editEvent(){
@@ -269,6 +368,47 @@ public class CustomerDetails extends VerticalLayout implements BeforeEnterObserv
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    protected void setupFieldListeners() {
+        // Assuming status, chinName, engName, etc. are members of the form as TextField or similar inputs
+        statusBox.addValueChangeListener(event -> updateConfirmButtonState());
+        addDatePicker.addValueChangeListener(event -> updateConfirmButtonState());
+        chinNameField.addValueChangeListener(event -> updateConfirmButtonState());
+        engNameField.addValueChangeListener(event -> updateConfirmButtonState());
+        natureBox.addValueChangeListener(event -> updateConfirmButtonState());
+        depositField.addValueChangeListener(event -> updateConfirmButtonState());
+        contactNumberField.addValueChangeListener(event -> updateConfirmButtonState());
+        contactPersonField.addValueChangeListener(event -> updateConfirmButtonState());
+        addressArea.addValueChangeListener(event -> updateConfirmButtonState());
+    }
+
+    private void updateConfirmButtonState() {
+        confirmButton.setEnabled(validateFields());
+    }
+
+    private boolean validateFields() {
+        boolean result = false;
+        result = isNotNullOrEmpty(statusBox.getValue()) &&
+                isNotNullOrEmpty(addDatePicker.getValue()) &&
+                isNotNullOrEmpty(chinNameField.getValue()) &&
+                isNotNullOrEmpty(engNameField.getValue()) &&
+                isNotNullOrEmpty(natureBox.getValue()) &&
+                isNotNullOrEmpty(depositField.getValue()) &&
+                isNotNullOrEmpty(contactNumberField.getValue()) &&
+                isNotNullOrEmpty(contactPersonField.getValue()) &&
+                isNotNullOrEmpty(addressArea.getValue());
+        if (depositField.getValue() < 0) {
+            result = false;
+        }
+        return result;
+    }
+
+    private boolean isNotNullOrEmpty(Object value) {
+        if (value instanceof String) {
+            return value != null && !((String) value).isEmpty();
+        }
+        return value != null; // Non-string values just check for null
     }
 
     protected void configureStatus() {

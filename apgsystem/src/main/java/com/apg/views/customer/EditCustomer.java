@@ -233,7 +233,6 @@ public class EditCustomer extends VerticalLayout {
                 currentUI.setPollInterval(-1); // Stop polling after reload
             });
         });
-
     }
 
     protected void insertDataToDataBase() {
