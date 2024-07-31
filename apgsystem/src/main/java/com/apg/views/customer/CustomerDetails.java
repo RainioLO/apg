@@ -17,6 +17,7 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.NumberField;
+import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.value.ValueChangeMode;
@@ -77,8 +78,7 @@ public class CustomerDetails extends VerticalLayout implements BeforeEnterObserv
     private Button confirmButton = new Button("Confirm");
     private Button cancelButton = new Button("Cancel");
 
-    private Button deleteButton = new Button();
-    private Button dialogBackButton = new Button();
+    private Button yesButton = new Button("Yes");
 
     public CustomerDetails() {
         setWidth("1000px");
@@ -237,15 +237,32 @@ public class CustomerDetails extends VerticalLayout implements BeforeEnterObserv
         // Create layout and components for the dialog
         VerticalLayout layout = new VerticalLayout();
         Text message = new Text("Are you sure you want to proceed?");
-        Button yesButton = new Button("Yes", event -> {
+        yesButton.addClickListener(event -> {
             confirmDialog.close();
             editSaveAction(); // This method should handle what happens after confirmation
         });
-        Button noButton = new Button("No", event -> confirmDialog.close());
+        yesButton.setEnabled(false);
         yesButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SUCCESS);
+
+        Button noButton = new Button("No", event -> confirmDialog.close());
         noButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
-        layout.add(message, yesButton, noButton);
-        layout.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.CENTER);
+
+        PasswordField passwordField = new PasswordField();
+        HorizontalLayout passwordLayout = new HorizontalLayout();
+        passwordField.setLabel("Password");
+        passwordField.setPlaceholder("Password to process ....");
+        passwordField.addValueChangeListener(event -> {
+            yesButton.setEnabled("#@admin".equals(passwordField.getValue()));
+        });
+        passwordLayout.add(passwordField);
+
+        HorizontalLayout buttons = new HorizontalLayout();
+        buttons.add(yesButton, noButton);
+        buttons.setSizeFull();
+        buttons.setJustifyContentMode(JustifyContentMode.CENTER);
+
+        layout.add(message, passwordLayout, buttons);
+        layout.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.CENTER); //set the whole dialog center
         // Add layout to dialog
         confirmDialog.add(layout);
         // Open the dialog
@@ -381,6 +398,7 @@ public class CustomerDetails extends VerticalLayout implements BeforeEnterObserv
         contactNumberField.addValueChangeListener(event -> updateConfirmButtonState());
         contactPersonField.addValueChangeListener(event -> updateConfirmButtonState());
         addressArea.addValueChangeListener(event -> updateConfirmButtonState());
+        remarkArea.addValueChangeListener(event -> updateConfirmButtonState());
     }
 
     private void updateConfirmButtonState() {
