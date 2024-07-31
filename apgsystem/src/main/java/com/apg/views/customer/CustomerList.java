@@ -44,7 +44,8 @@ public class CustomerList extends VerticalLayout {
     private void setupComponents() throws SQLException {
         setupSearchBar();
         setupGrid();
-        setSizeFull();
+//        setSizeFull();
+        setWidth("1400px");
         setPadding(false);
         setMargin(true);
         add(grid, backButton());

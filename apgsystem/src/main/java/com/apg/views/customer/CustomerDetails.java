@@ -3,12 +3,14 @@ package com.apg.views.customer;
 import com.apg.data.CustomerStatus;
 import com.apg.utils.DatabaseConfig;
 import com.apg.views.MainLayout;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.NumberField;
@@ -27,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static com.apg.utils.DatabaseConfig.getTomcatName;
 
 @PermitAll
 @PageTitle("APG | Customer Details")
@@ -65,9 +69,11 @@ public class CustomerDetails extends VerticalLayout implements BeforeEnterObserv
     private static String remark = "NA";
     private CustomerStatus status = CustomerStatus.ACTIVE;
 
-    private Button backButton = new Button();
-    private Button editButton = new Button();
-    private Button confirmButton = new Button();
+    private Button backButton = new Button("Back");
+    private Button editButton = new Button("Edit");
+    private Button confirmButton = new Button("Confirm");
+    private Button cancelButton = new Button("Cancel");
+
     private Button deleteButton = new Button();
     private Button dialogBackButton = new Button();
 
@@ -80,12 +86,9 @@ public class CustomerDetails extends VerticalLayout implements BeforeEnterObserv
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-        System.out.println("Entering beforeEnter method");
         Map<String, List<String>> params = event.getLocation().getQueryParameters().getParameters();
-        System.out.println("All received parameters: " + params);
         detailsCustomerID = extractParam(params, "id").orElse("");
         detailsCustomerName = extractParam(params, "name").orElse("");
-        System.out.println("Loaded details for: " + detailsCustomerID + ", " + detailsCustomerName);
         buildUI(); // set in the beforeEnter
     }
 
@@ -114,13 +117,9 @@ public class CustomerDetails extends VerticalLayout implements BeforeEnterObserv
 
     protected void buildUI() {
         configureTop();
-        System.out.println("ID: name " + detailsCustomerID + " :" + detailsCustomerName);
-        System.out.println("Setting the information ......");
         setInformation();
-        System.out.println(detailsCustomerID + ": " + detailsCustomerName);
-        System.out.println("Information set ......");
         configureCustomerInfo();
-        System.out.println("Customer ID: " + customerID);
+        configureButtons();
         buildView();
     }
 
@@ -163,11 +162,8 @@ public class CustomerDetails extends VerticalLayout implements BeforeEnterObserv
         row6.setSizeFull();
         remarkArea.setWidth("50%");
         row6.add(remarkArea);
-//        row6.setFlexGrow(1, remark);
 
-        HorizontalLayout row7 = new HorizontalLayout();
-
-        add(row1, row2, row3, row4, row5, row6);
+        add(row1, row2, row3, row4, row5, row6, createButtons());
     }
 
     protected void configureCustomerInfo() {
@@ -182,6 +178,69 @@ public class CustomerDetails extends VerticalLayout implements BeforeEnterObserv
         configureDeposit();
         configureRemarks();
         configureStatus();
+    }
+
+    private HorizontalLayout createButtons(){
+        HorizontalLayout buttonLayout = new HorizontalLayout();
+        buttonLayout.setSizeFull();
+        buttonLayout.setAlignItems(FlexComponent.Alignment.END);
+        buttonLayout.setJustifyContentMode(JustifyContentMode.END);
+        buttonLayout.add(editButton, backButton, confirmButton, cancelButton);
+        return  buttonLayout;
+    }
+
+    private void configureButtons(){
+        configureBackButton();
+        configureEditButton();
+        configureConfirmButton();
+        configureCancelButton();
+    }
+
+    private void configureBackButton() {
+        backButton.addClickListener(event -> {
+            UI.getCurrent().getPage().setLocation(getTomcatName("/"));
+        });
+        backButton.addClassName("cursor-pointer");
+    }
+
+    private void configureEditButton(){
+        editButton.addClassName("cursor-pointer");
+        editButton.addClickListener(click -> editEvent());
+    }
+
+    private void configureConfirmButton(){
+        confirmButton.setVisible(false);
+        confirmButton.setEnabled(false);
+        confirmButton.addClassName("cursor-pointer");
+    }
+
+    private void configureCancelButton(){
+        cancelButton.setVisible(false);
+        cancelButton.addClassName("cursor-pointer");
+        cancelButton.addClickListener(event -> {
+            UI.getCurrent().getPage().setLocation(getTomcatName("/"));
+        });
+    }
+
+    private void editEvent(){
+        enableField();
+        backButton.setVisible(false);
+        editButton.setVisible(false);
+        confirmButton.setVisible(true);
+        cancelButton.setVisible(true);
+    }
+
+    private void enableField(){
+        statusBox.setReadOnly(false);
+        addDatePicker.setReadOnly(false);
+        chinNameField.setReadOnly(false);
+        engNameField.setReadOnly(false);
+        natureBox.setReadOnly(false);
+        depositField.setReadOnly(false);
+        contactPersonField.setReadOnly(false);
+        contactNumberField.setReadOnly(false);
+        addressArea.setReadOnly(false);
+        remarkArea.setReadOnly(false);
     }
 
     private void setInformation(){ // mind the closing
