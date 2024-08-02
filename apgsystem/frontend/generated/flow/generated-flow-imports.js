@@ -44,17 +44,17 @@ import '@vaadin/vaadin-lumo-styles/vaadin-iconset.js';
 
 const loadOnDemand = (key) => {
   const pending = [];
-  if (key === 'c6ddaaa9835d9cecb9d291523a7556679a76f0a657b672578da19f37e12f641f') {
-    pending.push(import('./chunks/chunk-5f65120f9abead5640c4e4826d61203ae6f9555288b32143e06db991e4e30349.js'));
+  if (key === 'f4037603ce541f566f6a0ee0bbb2ab5cc1a505cd4633b93469bd6e5eda96bccb') {
+    pending.push(import('./chunks/chunk-1ceb3faebe6ffe31e638a51c2530094e992d5b2c30c41e5957183cef54ecff6e.js'));
   }
   if (key === '5741289efe7f7c171f8daa8ee9acad1ebd2f88f100b85d2c60d5b4afc5208ba1') {
     pending.push(import('./chunks/chunk-40c54e9bb665f7bab7f58f6eb4a876ea0a85c41d42fcf65cf050641ac78a3248.js'));
   }
-  if (key === 'f4037603ce541f566f6a0ee0bbb2ab5cc1a505cd4633b93469bd6e5eda96bccb') {
-    pending.push(import('./chunks/chunk-1ceb3faebe6ffe31e638a51c2530094e992d5b2c30c41e5957183cef54ecff6e.js'));
-  }
   if (key === '00fae1c6f9d2f8189c325903ad5c805c41c508c9c3864537155f4268663df7fe') {
     pending.push(import('./chunks/chunk-1ceb3faebe6ffe31e638a51c2530094e992d5b2c30c41e5957183cef54ecff6e.js'));
+  }
+  if (key === 'c6ddaaa9835d9cecb9d291523a7556679a76f0a657b672578da19f37e12f641f') {
+    pending.push(import('./chunks/chunk-5f65120f9abead5640c4e4826d61203ae6f9555288b32143e06db991e4e30349.js'));
   }
   return Promise.all(pending);
 }
