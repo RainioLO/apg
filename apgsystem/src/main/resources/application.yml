@@ -1,5 +1,5 @@
 server:
-  port: ${PORT:8081}
+  port: ${PORT:8080}
   forward-headers-strategy: native
 
 logging:
@@ -7,6 +7,8 @@ logging:
     org.atmosphere: warn
 
 spring:
+  main:
+    web-application-type: servlet
   mustache:
     check-template-location: false
   datasource:
@@ -22,9 +24,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
 
-
 vaadin:
-  push-mode: automatic
   launch-browser: false
   allowed-packages:
     - com.vaadin

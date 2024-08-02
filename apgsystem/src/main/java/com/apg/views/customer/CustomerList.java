@@ -36,7 +36,8 @@ import static com.apg.utils.DatabaseConfig.getTomcatName;
 @CssImport("./styles/styles.css")
 public class CustomerList extends VerticalLayout {
 
-    private Grid<String[]> grid = new Grid<>(String[].class);;
+    private Grid<String[]> grid = new Grid<>(String[].class);
+    ;
     private TextField searchField = new TextField();
 //    private Button searchButton = new Button("Search");
 
@@ -54,6 +55,7 @@ public class CustomerList extends VerticalLayout {
         add(grid, backButton());
         setFlexGrow(1, grid);
         getStyle().set("overflow", "auto"); // Ensures the whole component is scrollable if content overflows
+        addAttachListener(event -> refreshGrid());
     }
 
     private void setupGrid() {
@@ -61,50 +63,73 @@ public class CustomerList extends VerticalLayout {
     }
 
     private void updateGrid() {
-            try (Connection conn = DriverManager.getConnection(DatabaseConfig.url, DatabaseConfig.username, DatabaseConfig.password)) {
+        if (UI.getCurrent() != null && isAttached()) {
+            UI.getCurrent().access(() -> {
+                try (Connection conn = DriverManager.getConnection(DatabaseConfig.url, DatabaseConfig.username, DatabaseConfig.password)) {
+                    ResultSet customerRecord = getCustomerList(conn, searchField.getValue());
+                    List<String[]> itemsList = new ArrayList<>();
+                    while (customerRecord.next()) {
+                        String[] item = new String[5];
+                        item[0] = customerRecord.getString("customerID");
+                        item[1] = customerRecord.getString("chinName");
+                        item[2] = customerRecord.getString("addDate"); // Assuming 'Alias' is 'login_name'
+                        item[3] = customerRecord.getString("nature");
+                        item[4] = customerRecord.getString("status");
+                        itemsList.add(item);
+                    }
 
-                ResultSet customerRecord = getCustomerList(conn, searchField.getValue());
+                    // Clear the grid and add new items
+                    grid.removeAllColumns();
+                    grid.setItems(itemsList); // This will be empty if no data is found
 
-                List<String[]> itemsList = new ArrayList<>();
+                    grid.addColumn(items -> items[0]).setHeader("Customer ID").setWidth("250px").setFlexGrow(0);
+                    grid.addColumn(items -> items[1]).setHeader("Customer Name").setWidth("250px").setFlexGrow(0);
+                    grid.addColumn(items -> items[2]).setHeader("Join Date").setWidth("250px").setFlexGrow(0);
+                    grid.addColumn(items -> items[3]).setHeader("Nature").setWidth("250px").setFlexGrow(0);
+                    grid.addColumn(items -> items[4]).setHeader("Status").setWidth("250px").setFlexGrow(0);
 
-                while (customerRecord.next()) {
-                    String[] item = new String[5];
-                    item[0] = customerRecord.getString("customerID");
-                    item[1] = customerRecord.getString("chinName");
-                    item[2] = customerRecord.getString("addDate"); // Assuming 'Alias' is 'login_name'
-                    item[3] = customerRecord.getString("nature");
-                    item[4] = customerRecord.getString("status");
-                    itemsList.add(item);
+                    grid.setSelectionMode(Grid.SelectionMode.SINGLE);
+                    grid.addItemDoubleClickListener(event -> {
+                        String[] selectedItem = event.getItem();
+                        // Prepare navigation with parameters
+                        QueryParameters queryParams = QueryParameters.simple(Map.of(
+                                "id", selectedItem[0],
+                                "name", selectedItem[1]
+                        ));
+                        // Navigate to 'customer-details' view with parameters
+                        UI.getCurrent().navigate("customer-details", queryParams);
+                    });
+
+                } catch (SQLException e) {
+                    // Clear the grid if there's an error
+                    grid.removeAllColumns();
+                    grid.setItems(new ArrayList<>()); // Ensure the grid is empty
                 }
-
-                // Clear the grid and add new items
-                grid.removeAllColumns();
-                grid.setItems(itemsList); // This will be empty if no data is found
-
-                grid.addColumn(items -> items[0]).setHeader("Customer ID").setWidth("250px").setFlexGrow(0);
-                grid.addColumn(items -> items[1]).setHeader("Customer Name").setWidth("250px").setFlexGrow(0);
-                grid.addColumn(items -> items[2]).setHeader("Join Date").setWidth("250px").setFlexGrow(0);
-                grid.addColumn(items -> items[3]).setHeader("Nature").setWidth("250px").setFlexGrow(0);
-                grid.addColumn(items -> items[4]).setHeader("Status").setWidth("250px").setFlexGrow(0);
-
-                grid.setSelectionMode(Grid.SelectionMode.SINGLE);
-                grid.addItemDoubleClickListener(event -> {
-                    String[] selectedItem = event.getItem();
-                    // Prepare navigation with parameters
-                    QueryParameters queryParams = QueryParameters.simple(Map.of(
-                            "id", selectedItem[0],
-                            "name", selectedItem[1]
-                    ));
-                    // Navigate to 'customer-details' view with parameters
-                    UI.getCurrent().navigate("customer-details", queryParams);
-                });
-
-            } catch (SQLException e) {
-                // Clear the grid if there's an error
-                grid.removeAllColumns();
-                grid.setItems(new ArrayList<>()); // Ensure the grid is empty
-            }
+            });
         }
+    }
+
+    public void refreshGrid() {
+        if (this.isAttached()) {
+            updateGrid();
+        }
+    }
+
+
+    private void setupSearchBar() {
+        searchField.setPlaceholder("Search customer ...");
+        searchField.setClearButtonVisible(true);
+        searchField.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
+        searchField.setValueChangeMode(ValueChangeMode.LAZY);
+        searchField.setValueChangeTimeout(500);
+        searchField.addValueChangeListener(e -> updateGrid());
+
+        HorizontalLayout searchLayout = new HorizontalLayout(searchField);
+        searchLayout.setWidthFull();
+        searchLayout.setAlignItems(Alignment.BASELINE);
+        add(searchLayout);
+    }
+
 
     private ResultSet getCustomerList(Connection conn, String filter) throws SQLException {
         String tableName = "customer_table";
@@ -125,21 +150,6 @@ public class CustomerList extends VerticalLayout {
         return pstmt.executeQuery();
     }
 
-    private void setupSearchBar() {
-        searchField.setPlaceholder("Search customer ...");
-        searchField.setClearButtonVisible(true);
-        searchField.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
-        searchField.setValueChangeMode(ValueChangeMode.EAGER);
-        searchField.addValueChangeListener(e -> updateGrid());
-
-//        searchButton.addClickListener(e -> updateGrid());
-
-        HorizontalLayout searchLayout = new HorizontalLayout(searchField);
-        searchLayout.setWidthFull();
-        searchLayout.setAlignItems(Alignment.BASELINE);
-        add(searchLayout);
-    }
-
     private HorizontalLayout backButton() {
         Button back = new Button("Back", click -> {
             UI.getCurrent().getPage().setLocation(getTomcatName("/"));
@@ -153,14 +163,6 @@ public class CustomerList extends VerticalLayout {
         buttons.setJustifyContentMode(JustifyContentMode.END);
         return buttons;
     }
-
-
-
-
-
-
-
-
 }
 
 
