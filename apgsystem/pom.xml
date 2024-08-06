@@ -76,6 +76,11 @@
 <!--            <scope>provided</scope>-->
 <!--        </dependency>-->
         <dependency>
+            <groupId>com.google.cloud.sql</groupId>
+            <artifactId>mysql-socket-factory</artifactId>
+            <version>1.12.0</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
@@ -92,11 +97,6 @@
             <groupId>net.minidev</groupId>
             <artifactId>accessors-smart</artifactId>
             <version>2.5.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.quartz-scheduler</groupId>
-            <artifactId>quartz</artifactId>
-            <version>2.3.2</version>
         </dependency>
         <dependency>
             <groupId>com.sun.mail</groupId>
@@ -120,19 +120,6 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>org.springframework.ldap</groupId>
-            <artifactId>spring-ldap-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-ldap</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.microsoft.azure</groupId>
-            <artifactId>msal4j</artifactId>
-            <version>1.15.0</version>
-        </dependency>
-        <dependency>
             <groupId>com.vaadin</groupId>
             <!-- Replace artifactId with vaadin-core to use only free components -->
             <artifactId>vaadin</artifactId>
@@ -146,11 +133,6 @@
         <!--            <artifactId>vaadin-signaturefield</artifactId>-->
         <!--            <version>2.0.1</version>-->
         <!--        </dependency>-->
-        <dependency>
-            <groupId>de.f0rce.signaturepad</groupId>
-            <artifactId>signature-widget</artifactId>
-            <version>3.1.0</version>
-        </dependency>
         <!-- <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
@@ -236,17 +218,6 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>3.3.1</version>
-                <configuration>
-<!--                    <jvmArguments>-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5865</jvmArguments>-->
-<!--                    <wait>500</wait>-->
-<!--                    <maxAttempts>240</maxAttempts>-->
-                    <excludes>
-                        <exclude>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                        </exclude>
-                    </excludes>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>com.vaadin</groupId>
@@ -260,16 +231,6 @@
                     </execution>
                 </executions>
             </plugin>
-<!--            <plugin>-->
-<!--                <groupId>org.apache.maven.plugins</groupId>-->
-<!--                <artifactId>maven-war-plugin</artifactId>-->
-<!--                <version>3.3.2</version>-->
-<!--                <extensions>false</extensions>-->
-<!--                <configuration>-->
-<!--                    <failOnMissingWebXml>false</failOnMissingWebXml>-->
-<!--                    <packagingExcludes>WEB-INF/lib/tomcat-embed*.jar</packagingExcludes>-->
-<!--                </configuration>-->
-<!--            </plugin>-->
         </plugins>
     </build>
 
@@ -297,12 +258,6 @@
                 <dependency>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-web</artifactId>
-<!--                    <exclusions>-->
-<!--                        <exclusion>-->
-<!--                            <groupId>org.springframework.boot</groupId>-->
-<!--                            <artifactId>spring-boot-starter-tomcat</artifactId>-->
-<!--                        </exclusion>-->
-<!--                    </exclusions>-->
                 </dependency>
             </dependencies>
             <build>

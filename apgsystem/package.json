@@ -87,8 +87,7 @@
     "lit": "3.1.2",
     "moment": "2.29.4",
     "moment-timezone": "0.5.40",
-    "proj4": "2.9.2",
-    "signature_pad": "4.1.5"
+    "proj4": "2.9.2"
   },
   "devDependencies": {
     "@rollup/plugin-replace": "5.0.5",
@@ -194,8 +193,7 @@
       "lit": "3.1.2",
       "moment": "2.29.4",
       "moment-timezone": "0.5.40",
-      "proj4": "2.9.2",
-      "signature_pad": "4.1.5"
+      "proj4": "2.9.2"
     },
     "devDependencies": {
       "@rollup/plugin-replace": "5.0.5",
@@ -215,7 +213,7 @@
       "workbox-core": "7.0.0",
       "workbox-precaching": "7.0.0"
     },
-    "hash": "7ed56875514e08143e85cd5155ce88f57c689a6038495a3135c057832876432c"
+    "hash": "a6dc4acd431a57ad364665355d415f9f362c93fa3b9222a6c16b1ba9f8586788"
   },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",
@@ -293,7 +291,6 @@
     "proj4": "$proj4",
     "@fullcalendar/core": "$@fullcalendar/core",
     "@fullcalendar/list": "$@fullcalendar/list",
-    "signature_pad": "$signature_pad",
     "@fullcalendar/moment-timezone": "$@fullcalendar/moment-timezone",
     "@vaadin/vaadin-themable-mixin": "$@vaadin/vaadin-themable-mixin",
     "@fullcalendar/interaction": "$@fullcalendar/interaction",

@@ -12,7 +12,7 @@ spring:
   mustache:
     check-template-location: false
   datasource:
-    url: jdbc:mysql://localhost:3306/apg?createDatabaseIfNotExist=true&useSSL=true
+    url: jdbc:mysql:///apg?cloudSqlInstance=abstract-ring-431708-k3:asia-east2:apg-database&socketFactory=com.google.cloud.sql.mysql.SocketFactory
     username: root
     password: Admin@1234
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -22,7 +22,8 @@ spring:
       ddl-auto: update
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        default_schema: public
 
 vaadin:
   launch-browser: false

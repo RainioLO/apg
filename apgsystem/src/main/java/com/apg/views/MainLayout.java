@@ -14,7 +14,6 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.server.VaadinServletRequest;
 import com.vaadin.flow.theme.lumo.LumoUtility;
-import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -32,7 +31,7 @@ public class MainLayout extends AppLayout {
     private Accordion accordion;
     private List<AccordionPanel> panels = new ArrayList<>();
 
-    public MainLayout() throws SchedulerException {
+    public MainLayout()  {
         addClassName("vaadin-app-layout");
         createHeader();
         createDrawer();
